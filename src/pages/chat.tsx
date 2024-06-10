@@ -1,11 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
+import { Message } from '@/components/message';
 
 const Chat: React.FC = () => {
   const [message, setMessage] = useState('');
-  const [response, setResponse] = useState('');
   const [assistant, setAssistant] = useState<any>({});
   const [thread, setThread] = useState<any>({});
+  const [messages, setMessages] = useState<any[]>([]);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
@@ -30,37 +31,24 @@ const Chat: React.FC = () => {
   };
 
   const handleSendMessage = async () => {
-    setResponse(''); // Clear previous response
     if (eventSourceRef.current) {
       eventSourceRef.current.close();
     }
-
     try {
       await axios.post('/api/chat', { message: message, thread: thread });
-      const eventSource = new EventSource(`/api/chat?assistant=${assistant.id}&thread=${thread.id}`);
-      eventSourceRef.current = eventSource;
-
-      eventSource.onmessage = (event) => {
-        const eventData = JSON.parse(event.data);
-        if (eventData.event === 'end') {
-          eventSource.close();
-        } else {
-          if (eventData.event === 'textDelta' || eventData.event === 'textCreated') {
-            setResponse((prev) => prev + eventData.data);
-          }
-        }
+      const newMessage = {
+        assistantId: assistant.id,
+        threadId: thread.id,
       };
-
-      eventSource.onerror = () => {
-        eventSource.close();
-      };
+      setMessages((prevMessages) => [...prevMessages, {content: message} ,newMessage]);
+      setMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
     }
   };
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div id='main' style={{ padding: '20px' }}>
       <h1>ChatGPT Wrapper</h1>
       <textarea
         value={message}
@@ -71,9 +59,9 @@ const Chat: React.FC = () => {
       <br />
       <button onClick={handleSendMessage}>Send</button>
       <h2>Response:</h2>
-      <div style={{ whiteSpace: 'pre-wrap', border: '1px solid #ccc', padding: '10px', marginTop: '10px' }}>
-        {response}
-      </div>
+      {messages.map((msg, index) => (
+        <Message key={index} {...msg} />
+      ))}
     </div>
   );
 };

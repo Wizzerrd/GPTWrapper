@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       })
       .on('textDelta', (textDelta, snapshot) => {
         process.stdout.write(textDelta.value || "")
-        res.write(`data: ${JSON.stringify({ event: 'textDelta', data: textDelta.value || '' })}\n\n`);
+        res.write(`data: ${JSON.stringify({ event: 'textDelta', data: textDelta?.value || '' })}\n\n`);
       })
       .on('toolCallCreated', (toolCall) => process.stdout.write(`\nassistant > ${toolCall.type}\n\n`))
       .on('toolCallDelta', (toolCallDelta, snapshot) => {
