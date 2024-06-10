@@ -58,7 +58,7 @@ const Chat: React.FC = () => {
       />
       <br />
       <button onClick={handleSendMessage}>Send</button>
-      <h2>Response:</h2>
+      <h2>Thread:</h2>
       {messages.map((msg, index) => (
         <Message key={index} {...msg} />
       ))}
